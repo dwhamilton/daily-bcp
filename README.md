@@ -1,14 +1,43 @@
 # bcp-cli
 
-A terminal-first prototype for reading the ACNA 2019 Daily Office lectionary.
+Terminal-first Daily Office reader with vim-style navigation, KJV readings,
+collects, and persistent Markdown notes.
 
-`bcp-cli` reads local lectionary CSV files, finds the Morning or Evening Prayer
-readings for a given date, fetches public-domain KJV Bible text from
-`bible-api.com`, and prints the office in a terminal-friendly format. With no
-arguments, it defaults to today's Evening Prayer.
+`bcp-cli` is an opinionated command-line tool for reading the Daily Office from
+the ACNA 2019 Book of Common Prayer lectionary. It is designed for users who
+prefer deliberate, text-first workflows and want to pair structured reading with
+durable reflection.
 
 This is currently a prototype shell script with embedded Python. The long-term
 shape is likely a small installable Python CLI.
+
+## Features
+
+- Daily Office readings from local ACNA 2019 lectionary CSV files
+- Morning Prayer and Evening Prayer support
+- public-domain KJV Bible text fetched from `bible-api.com`
+- office collects before the readings
+- weekday collect lookup as a separate command
+- optional vim-style terminal reader
+- persistent Markdown memo support from vim-style mode
+- local-first design with no accounts or sync
+
+## Philosophy
+
+This tool is not optimized for speed or frictionless consumption. It is
+optimized for:
+
+- attention
+- clarity
+- deliberate engagement
+- durable notes
+
+It assumes:
+
+- you are willing to read linearly
+- you prefer keyboard-driven interaction
+- you want reflections saved as plain text
+- you value local files over accounts, dashboards, and sync layers
 
 ## Current State
 
@@ -84,45 +113,20 @@ is equivalent to today's Evening Prayer.
 
 When developing from a clone, use `./bcp.sh` in place of `bcp`.
 
-## Current Local Install
+## Installation
 
-The simplest install today is to put this repo somewhere stable and symlink the
-script into a directory on your `PATH`.
+There is no package-manager install yet. For now, install the script and data
+files locally.
 
-Example:
+### Option 1: Agent-Assisted Install
 
-```sh
-mkdir -p "$HOME/.local/bin"
-ln -sf "$PWD/bcp.sh" "$HOME/.local/bin/bcp"
-```
-
-Then run:
-
-```sh
-bcp
-bcp morning
-bcp 2026-05-05 evening
-```
-
-Keep the CSV files and `collects.yaml` next to `bcp.sh`; the script currently
-expects to find its data beside the script. A future install script should move
-data into a standard location such as:
-
-```text
-~/.local/share/bcp-cli/
-```
-
-and teach the CLI to read from that installed data directory.
-
-## Agent-Assisted Install
-
-If you use Codex, Claude Code, or another terminal coding agent, you can give it
-bounded install instructions instead of doing the manual steps yourself.
+If you use Codex, Claude Code, Cursor, or another terminal coding agent, you can
+give it bounded install instructions instead of doing the manual steps yourself.
 
 ```text
 Please install bcp-cli from this GitHub repository:
 
-git@github.com:dwhamilton/bcp-cli.git
+https://github.com/dwhamilton/bcp-cli.git
 
 Goal:
 Install bcp-cli so I can run it as `bcp` from my terminal.
@@ -155,6 +159,42 @@ before replacing it unless it is already part of this bcp-cli install.
 Review any commands the agent asks to run before approving them. This section is
 a convenience wrapper around the manual install steps, not a substitute for
 understanding what is being installed.
+
+### Option 2: Manual Install
+
+Clone the repo and install the script and data files:
+
+```sh
+git clone https://github.com/dwhamilton/bcp-cli.git
+cd bcp-cli
+mkdir -p "$HOME/.local/share/bcp-cli" "$HOME/.local/bin"
+cp bcp.sh collects.yaml *_morning.csv *_evening.csv "$HOME/.local/share/bcp-cli/"
+chmod +x "$HOME/.local/share/bcp-cli/bcp.sh"
+ln -sf "$HOME/.local/share/bcp-cli/bcp.sh" "$HOME/.local/bin/bcp"
+```
+
+Make sure `~/.local/bin` is on your `PATH`.
+
+Verify:
+
+```sh
+bcp collect sat
+bcp 2026-05-05 morning
+```
+
+### Uninstall
+
+```sh
+rm -f "$HOME/.local/bin/bcp"
+rm -rf "$HOME/.local/share/bcp-cli"
+```
+
+Memo files are stored separately and are not removed by the uninstall commands.
+By default they live under:
+
+```text
+${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/
+```
 
 ## Commands
 
@@ -219,7 +259,7 @@ Controls:
 
 ## Memos
 
-In `--vim` mode, press `m` to open a persistent memo file.
+In `--vim` mode, press `m` to open one persistent Markdown memo file.
 
 The editor is chosen in this order:
 
@@ -310,7 +350,41 @@ data_dir: /home/user/.local/share/bcp-cli
 bible_translation: kjv
 ```
 
-## Future Development
+## Design Principles
+
+- text-first
+- local-first
+- keyboard-driven
+- durable Markdown outputs
+- explicit, inspectable data files
+- opinionated workflows over broad configuration
+
+## Current Limitations
+
+- partial lectionary coverage: May and June only
+- Bash/Python hybrid implementation
+- no offline Bible text cache
+- minimal validation of CSV inputs
+- no package-manager installation
+- no config file yet
+
+## Future CLI Shape
+
+The current command surface is intentionally small. Future versions may grow
+toward commands like:
+
+```sh
+bcp today
+bcp read morning
+bcp read 2026-05-05 evening
+bcp note
+bcp collect sat
+```
+
+These commands do not exist yet; they are listed here to make the direction
+explicit without misrepresenting the current tool.
+
+## Roadmap
 
 Near-term:
 
@@ -335,6 +409,19 @@ Later:
 - consider a richer TUI with `prompt_toolkit` or `Textual`
 - support additional Bible text sources
 - support local/offline public-domain Bible text
+
+## License
+
+No license file has been added yet. MIT is a likely fit for the code.
+
+The ACNA 2019 Book of Common Prayer text is not included in full. Users are
+responsible for ensuring appropriate use of source materials.
+
+## Why This Exists
+
+Most tools optimize for doing more.
+
+This tool is designed to help you pay attention to less, more deliberately.
 
 ## Development Notes
 
