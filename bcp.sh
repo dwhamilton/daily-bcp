@@ -22,12 +22,15 @@ if [[ ${#args[@]} -gt 2 ]]; then
   printf '       %s [morning|evening]\n' "${0##*/}" >&2
   printf '       %s [--vim] [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
   printf '       %s collect [weekday]\n' "${0##*/}" >&2
+  printf '       %s note|notes\n' "${0##*/}" >&2
   exit 1
 fi
 
 if [[ ${#args[@]} -eq 1 ]]; then
   if [[ "${args[0]}" == "collect" ]]; then
     mode="collect"
+  elif [[ "${args[0]}" == "note" || "${args[0]}" == "notes" ]]; then
+    mode="note"
   elif [[ "${args[0]}" == "morning" || "${args[0]}" == "evening" ]]; then
     office="${args[0]}"
   else
@@ -43,8 +46,8 @@ elif [[ ${#args[@]} -eq 2 ]]; then
   fi
 fi
 
-if [[ "$mode" == "collect" && "$vim_mode" == "true" ]]; then
-  printf 'Usage: %s collect [weekday]\n' "${0##*/}" >&2
+if [[ "$mode" != "readings" && "$vim_mode" == "true" ]]; then
+  printf 'Usage: %s [collect [weekday]|note|notes]\n' "${0##*/}" >&2
   printf '%s\n' '--vim is only supported for morning and evening readings.' >&2
   exit 1
 fi
@@ -148,7 +151,8 @@ def usage_error(message: str) -> None:
         "Usage: bcp.sh [YYYY-MM-DD] [morning|evening]\n"
         "       bcp.sh [morning|evening]\n"
         "       bcp.sh [--vim] [YYYY-MM-DD] [morning|evening]\n"
-        "       bcp.sh collect [weekday]"
+        "       bcp.sh collect [weekday]\n"
+        "       bcp.sh note|notes"
     )
 
 
@@ -389,13 +393,17 @@ def print_passage(label: str, ref: str) -> None:
 
 
 def default_memo_path() -> Path:
+    notes = os.environ.get("BCP_NOTES")
+    if notes:
+        return Path(notes).expanduser()
+
     configured = os.environ.get("BCP_MEMO")
     if configured:
         return Path(configured).expanduser()
 
     state_home = os.environ.get("XDG_STATE_HOME")
     base = Path(state_home).expanduser() if state_home else Path.home() / ".local" / "state"
-    return base / "bcp-cli" / "memo.md"
+    return base / "bcp-cli" / "notes.md"
 
 
 def ensure_memo_section(
@@ -433,9 +441,30 @@ def ensure_memo_section(
         handle.write("\n".join(section))
 
 
+def ensure_memo_file(memo_path: Path) -> None:
+    memo_path.parent.mkdir(parents=True, exist_ok=True)
+    if not memo_path.exists():
+        memo_path.write_text("# BCP Notes\n", encoding="utf-8")
+
+
 def editor_command() -> list[str]:
     editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or "vi"
     return shlex.split(editor)
+
+
+def open_editor(path: Path) -> None:
+    command = editor_command() + [str(path)]
+    try:
+        with open("/dev/tty", "r+b", buffering=0) as tty:
+            subprocess.run(command, stdin=tty, stdout=tty, stderr=tty, check=False)
+    except OSError:
+        subprocess.run(command, check=False)
+
+
+def open_notes() -> None:
+    memo_path = default_memo_path()
+    ensure_memo_file(memo_path)
+    open_editor(memo_path)
 
 
 def vim_pager(
@@ -473,7 +502,7 @@ def vim_pager(
             "b        scroll up one screen",
             "gg       jump to top",
             "G        jump to bottom",
-            "m        open memo file in editor",
+            "m        make/open notes in editor",
             "?        toggle this help",
             "q        quit",
         ]
@@ -494,7 +523,7 @@ def vim_pager(
         offset = min(offset, max_offset)
 
         header = f"{title} ({page_index + 1}/{len(pages)})"
-        help_text = "h/l section  j/k scroll  m memo  ? help  q quit"
+        help_text = "h/l section  j/k scroll  m note  ? help  q quit"
         stdscr.addnstr(0, 0, header, max(0, width - 1), curses.A_REVERSE)
         if width > len(help_text) + 2:
             stdscr.addnstr(0, max(0, width - len(help_text) - 1), help_text, len(help_text), curses.A_REVERSE)
@@ -516,11 +545,10 @@ def vim_pager(
 
         def open_memo(stdscr) -> None:
             ensure_memo_section(memo_path, date, office_title, psalms, first, second)
-            command = editor_command() + [str(memo_path)]
             curses.def_prog_mode()
             curses.endwin()
             try:
-                subprocess.run(command, check=False)
+                open_editor(memo_path)
             finally:
                 curses.reset_prog_mode()
                 stdscr.clear()
@@ -579,6 +607,10 @@ def vim_pager(
 
 def main() -> None:
     date = parse_date(DATE_ARG)
+    if MODE == "note":
+        open_notes()
+        return
+
     if MODE == "collect":
         print_daily_collect(date)
         return

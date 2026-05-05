@@ -19,7 +19,7 @@ shape is likely a small installable Python CLI.
 - office collects before the readings
 - weekday collect lookup as a separate command
 - optional vim-style terminal reader
-- persistent Markdown memo support from vim-style mode
+- persistent Markdown notes
 - local-first design with no accounts or sync
 
 ## Philosophy
@@ -49,7 +49,7 @@ Implemented:
 - office collects before the readings
 - weekday collect lookup as a separate command
 - a `--vim` terminal reader mode
-- memo support from `--vim` mode
+- notes support through `bcp note` and the `m` key in `--vim` mode
 
 Not yet implemented:
 
@@ -87,7 +87,7 @@ carefully.
 - `python3`
 - internet access for Bible text lookup
 - an editor such as `vim`, `nvim`, `nano`, or another `$VISUAL`/`$EDITOR` for
-  memo support
+  notes support
 
 The script has no Python package dependencies.
 
@@ -101,6 +101,8 @@ bcp morning
 bcp evening
 bcp 2026-05-05 morning
 bcp 2026-06-24 evening
+bcp note
+bcp notes
 ```
 
 With no arguments:
@@ -189,7 +191,7 @@ rm -f "$HOME/.local/bin/bcp"
 rm -rf "$HOME/.local/share/bcp-cli"
 ```
 
-Memo files are stored separately and are not removed by the uninstall commands.
+Notes are stored separately and are not removed by the uninstall commands.
 By default they live under:
 
 ```text
@@ -230,6 +232,13 @@ bcp collect sat
 Short weekday names are supported, such as `sun`, `mon`, `tue`, `wed`, `thu`,
 `fri`, and `sat`.
 
+Open the notes file:
+
+```sh
+bcp note
+bcp notes
+```
+
 ## Vim-Style Reader
 
 Add `--vim` to Morning or Evening Prayer:
@@ -253,13 +262,15 @@ Controls:
 - `j` / `k`: scroll one line
 - Space / `b`: scroll one screen
 - `gg` / `G`: top / bottom of the current section
-- `m`: open memo file in your editor
+- `m`: make/open notes in your editor
 - `?`: help
 - `q`: quit
 
-## Memos
+## Notes
 
-In `--vim` mode, press `m` to open one persistent Markdown memo file.
+Use `bcp note` to open one persistent Markdown notes file. In `--vim` mode,
+press `m` to make a note from the current office; this opens the same notes file
+and ensures there is one section for the current date and office.
 
 The editor is chosen in this order:
 
@@ -267,20 +278,21 @@ The editor is chosen in this order:
 2. `$EDITOR`
 3. `vi`
 
-The memo file is chosen in this order:
+The notes file is chosen in this order:
 
-1. `BCP_MEMO`
-2. `${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/memo.md`
+1. `BCP_NOTES`
+2. `BCP_MEMO`
+3. `${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/notes.md`
 
 Example:
 
 ```sh
-export BCP_MEMO="$HOME/notes/bcp.md"
-bcp --vim
+export BCP_NOTES="$HOME/notes/bcp.md"
+bcp note
 ```
 
-When a memo is opened, the CLI ensures there is one section for the current date
-and office. Pressing `m` repeatedly does not duplicate the section.
+Pressing `m` repeatedly in `--vim` mode does not duplicate the dated office
+section.
 
 Example section:
 
@@ -332,7 +344,8 @@ july_evening.csv
 
 Current configuration is environment-variable based:
 
-- `BCP_MEMO`: path to the memo file
+- `BCP_NOTES`: path to the notes file
+- `BCP_MEMO`: older alias for the notes file path
 - `BCP_COLLECTS`: path to `collects.yaml`
 - `BCP_CSV`: override the lectionary CSV for a run
 
@@ -377,7 +390,6 @@ toward commands like:
 bcp today
 bcp read morning
 bcp read 2026-05-05 evening
-bcp note
 bcp collect sat
 ```
 
