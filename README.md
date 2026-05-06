@@ -1,187 +1,54 @@
 # bcp-cli
 
-Terminal-first Daily Office reader with vim-style navigation, KJV readings,
-collects, and persistent Markdown notes.
+`bcp-cli` is a terminal-first Daily Office reader for the ACNA 2019 Book of
+Common Prayer lectionary. It gives you Morning Prayer or Evening Prayer
+readings, KJV Bible text, collects, common prayers, devotions, a keyboard-driven
+reader mode, and persistent Markdown notes.
 
-`bcp-cli` is an opinionated command-line tool for reading the Daily Office from
-the ACNA 2019 Book of Common Prayer lectionary. It is designed for users who
-prefer deliberate, text-first workflows and want to pair structured reading with
-durable reflection.
+It is built for deliberate, text-first use: open the office, read linearly, and
+keep reflections in plain files you control.
 
-This is currently a prototype shell script with embedded Python. The long-term
-shape is likely a small installable Python CLI.
+## What It Does
 
-## Features
+- Reads Morning Prayer and Evening Prayer from local lectionary CSV files
+- Fetches public-domain KJV Bible text from `bible-api.com`
+- Prints the office collect before the readings
+- Looks up weekday collects with `bcp collect`
+- Lists and prints common prayers with `bcp common`
+- Lists and prints personal devotions with `bcp devotion`
+- Opens a persistent Markdown notes file with `bcp note`
+- Provides an optional vim-style reader with `--vim`
+- Supports compact lesson formatting with `--compact`
 
-- Daily Office readings from local ACNA 2019 lectionary CSV files
-- Morning Prayer and Evening Prayer support
-- public-domain KJV Bible text fetched from `bible-api.com`
-- office collects before the readings
-- weekday collect lookup as a separate command
-- common prayers and creeds as a separate command
-- optional vim-style terminal reader
-- persistent Markdown notes
-- local-first design with no accounts or sync
-
-## Philosophy
-
-This tool is not optimized for speed or frictionless consumption. It is
-optimized for:
-
-- attention
-- clarity
-- deliberate engagement
-- durable notes
-
-It assumes:
-
-- you are willing to read linearly
-- you prefer keyboard-driven interaction
-- you want reflections saved as plain text
-- you value local files over accounts, dashboards, and sync layers
-
-## Current State
-
-Implemented:
-
-- Morning Prayer and Evening Prayer readings
-- May and June lectionary data
-- public-domain KJV Bible text lookup through `bible-api.com`
-- office collects before the readings
-- weekday collect lookup as a separate command
-- common prayer lookup as a separate command
-- a `--vim` terminal reader mode
-- notes support through `bcp note` and the `m` key in `--vim` mode
-
-Not yet implemented:
-
-- full-year lectionary data
-- offline Bible text
-- packaged `pipx`, Homebrew, or npm install
-- config file support
-- robust test suite
-
-## BCP Text and Use
-
-My working understanding is that this tool is aimed at personal devotional use
-and non-commercial experimentation.
-
-The ACNA 2019 Book of Common Prayer copyright page says that, with the exception
-of the New Coverdale Psalter, the content of the Book of Common Prayer (2019) is
-not under copyright, and that not-for-profit reproduction by churches and
-non-profit organizations is permitted. It also says the New Coverdale Psalter is
-copyright 2019 by the Anglican Church in North America, but that this is not
-intended to discourage use and duplication by churches for worship. For-profit
-publication requests are directed to Anglican House Media.
-
-Source: https://bcp2019.anglicanchurch.net/wp-content/uploads/2019/08/02-Copyright-Page.pdf
-
-This project currently avoids reproducing the New Coverdale Psalter text by
-fetching public-domain KJV Bible text instead. The local CSV files contain
-lectionary references and short collect texts. This README is not legal advice.
-Before publishing, distributing broadly, charging money, or bundling larger
-portions of BCP text, the licensing/copyright position should be reviewed more
-carefully.
+Current lectionary coverage is May and June only.
 
 ## Requirements
 
-- `bash`
 - `python3`
 - internet access for Bible text lookup
 - an editor such as `vim`, `nvim`, `nano`, or another `$VISUAL`/`$EDITOR` for
-  notes support
+  notes
 
-The script has no Python package dependencies.
+The CLI has no Python package dependencies.
 
-## Quick Start
+## Install
 
-After install:
-
-```sh
-bcp
-bcp morning
-bcp evening
-bcp 2026-05-05 morning
-bcp 2026-06-24 evening
-bcp common
-bcp common lords-prayer
-bcp devotion
-bcp devotion wesley
-bcp note
-bcp notes
-```
-
-With no arguments:
-
-```sh
-bcp
-```
-
-is equivalent to today's Evening Prayer.
-
-When developing from a clone, use `./bcp.sh` in place of `bcp`.
-
-## Installation
-
-There is no package-manager install yet. For now, install the script and data
-files locally.
-
-### Option 1: Agent-Assisted Install
-
-If you use Codex, Claude Code, Cursor, or another terminal coding agent, you can
-give it bounded install instructions instead of doing the manual steps yourself.
-
-```text
-Please install bcp-cli from this GitHub repository:
-
-https://github.com/dwhamilton/bcp-cli.git
-
-Goal:
-Install bcp-cli so I can run it as `bcp` from my terminal.
-
-Please do the following:
-1. Clone the repository into a normal source directory such as ~/src/bcp-cli,
-   unless it already exists.
-2. Inspect the repository before changing anything.
-3. Confirm that it contains:
-   - bcp.sh
-   - collects.yaml
-   - *_morning.csv and *_evening.csv files
-4. Create ~/.local/share/bcp-cli if it does not exist.
-5. Copy bcp.sh, collects.yaml, and all *_morning.csv / *_evening.csv files into
-   ~/.local/share/bcp-cli.
-6. Make ~/.local/share/bcp-cli/bcp.sh executable.
-7. Create ~/.local/bin if it does not exist.
-8. Symlink ~/.local/share/bcp-cli/bcp.sh to ~/.local/bin/bcp.
-9. If ~/.local/bin is not on my PATH, tell me the exact shell config line to
-   add, but do not edit my shell config unless I explicitly approve.
-10. Run these verification commands:
-   - ~/.local/bin/bcp collect sat
-   - ~/.local/bin/bcp 2026-05-05 morning
-11. Report what changed and whether the install worked.
-
-Do not delete or overwrite unrelated files. If a target file already exists, ask
-before replacing it unless it is already part of this bcp-cli install.
-```
-
-Review any commands the agent asks to run before approving them. This section is
-a convenience wrapper around the manual install steps, not a substitute for
-understanding what is being installed.
-
-### Option 2: Manual Install
-
-Clone the repo and install the script and data files:
+There is not yet a published PyPI or Homebrew package. For now, install from a
+clone.
 
 ```sh
 git clone https://github.com/dwhamilton/bcp-cli.git
 cd bcp-cli
-mkdir -p "$HOME/.local/share/bcp-cli" "$HOME/.local/bin"
-cp bcp.sh collects.yaml *_morning.csv *_evening.csv "$HOME/.local/share/bcp-cli/"
-chmod +x "$HOME/.local/share/bcp-cli/bcp.sh"
-ln -sf "$HOME/.local/share/bcp-cli/bcp.sh" "$HOME/.local/bin/bcp"
+pipx install .
 ```
 
-Make sure `~/.local/bin` is on your `PATH`.
+If you prefer a virtual environment:
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install .
+```
 
 Verify:
 
@@ -190,21 +57,14 @@ bcp collect sat
 bcp 2026-05-05 morning
 ```
 
-### Uninstall
+When running directly from a clone without installing:
 
 ```sh
-rm -f "$HOME/.local/bin/bcp"
-rm -rf "$HOME/.local/share/bcp-cli"
+./bcp.sh
+python3 -m bcp_cli
 ```
 
-Notes are stored separately and are not removed by the uninstall commands.
-By default they live under:
-
-```text
-${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/
-```
-
-## Commands
+## Use
 
 Read today's Evening Prayer:
 
@@ -225,11 +85,17 @@ Read a specific date:
 bcp 2026-05-05
 bcp 2026-05-05 morning
 bcp 2026-05-05 evening
+```
+
+Render lessons as wrapped paragraphs with inline verse markers:
+
+```sh
 bcp 2026-05-05 morning --compact
 ```
 
-Add `--compact` to Morning or Evening Prayer to render lessons as wrapped
-paragraphs with inline verse markers. Psalms remain verse-broken.
+Psalms remain verse-broken in compact mode.
+
+## Collects, Prayers, And Devotions
 
 Read the weekday collect:
 
@@ -239,9 +105,6 @@ bcp collect saturday
 bcp collect sat
 bcp collect all
 ```
-
-Short weekday names are supported, such as `sun`, `mon`, `tue`, `wed`, `thu`,
-`fri`, and `sat`.
 
 List common prayers:
 
@@ -255,12 +118,7 @@ Print a common prayer:
 bcp common lords-prayer
 bcp common apostles-creed
 bcp common nicene-creed
-bcp common agnus-dei
 bcp common confession
-bcp common purity
-bcp common night
-bcp common be-present
-bcp common sleep
 bcp common all
 ```
 
@@ -275,28 +133,13 @@ Print a devotion:
 ```sh
 bcp devotion peace
 bcp devotion daily-growth
-bcp devotion seeking-god
-bcp devotion grace-to-seek
-bcp devotion satisfaction
-bcp devotion submission
 bcp devotion wesley
-bcp devotion virtuous
-bcp devotion union
 bcp devotion all
-```
-
-Open the notes file:
-
-```sh
-bcp note
-bcp notes
 ```
 
 ## Vim-Style Reader
 
-Add `--vim` to Morning or Evening Prayer, or to the `collect`, `common`, and
-`devotion` commands when printing a specific item or `all`. `--compact` can be
-combined with `--vim` for Morning or Evening Prayer:
+Add `--vim` to read in a cleared, keyboard-driven terminal view:
 
 ```sh
 bcp --vim
@@ -307,14 +150,6 @@ bcp collect all --vim
 bcp common all --vim
 bcp devotion all --vim
 ```
-
-Each element appears on its own cleared terminal page:
-
-- office collect
-- each psalm
-- first lesson
-- second lesson
-- each collect, common prayer, or devotion when using `all`
 
 Controls:
 
@@ -328,9 +163,16 @@ Controls:
 
 ## Notes
 
-Use `bcp note` to open one persistent Markdown notes file. In `--vim` mode,
-press `m` to make a note from the current office; this opens the same notes file
-and ensures there is one section for the current date and office.
+Open the notes file:
+
+```sh
+bcp note
+bcp notes
+```
+
+In `--vim` mode, press `m` to open the same notes file. When reading an office,
+`bcp-cli` creates one dated section for that date and office, and pressing `m`
+again does not duplicate it.
 
 The editor is chosen in this order:
 
@@ -351,56 +193,7 @@ export BCP_NOTES="$HOME/notes/bcp.md"
 bcp note
 ```
 
-Pressing `m` repeatedly in `--vim` mode does not duplicate the dated office
-section.
-
-Example section:
-
-```md
-<!-- bcp-cli:2026-05-05:evening -->
-## 2026-05-05 - Evening Prayer
-
-Psalms: Psalm 10
-First Lesson: Job 33
-Second Lesson: 1 Peter 2:11-3:7
-
-Notes:
-```
-
-## Data Files
-
-Current lectionary files:
-
-- `may_morning.csv`
-- `may_evening.csv`
-- `june_morning.csv`
-- `june_evening.csv`
-
-Monthly office CSV files use this schema:
-
-```csv
-day,observance,sixty_day_psalter_ep,first_lesson,second_lesson
-```
-
-The file naming convention is:
-
-```text
-<month>_<office>.csv
-```
-
-Examples:
-
-```text
-july_morning.csv
-july_evening.csv
-```
-
-`collects.yaml` contains:
-
-- office collects for Morning and Evening Prayer
-- weekday collects used by `bcp collect`
-- common prayers used by `bcp common`
-- personal devotions used by `bcp devotion`
+Notes are not removed when you uninstall the CLI.
 
 ## Configuration
 
@@ -408,117 +201,41 @@ Current configuration is environment-variable based:
 
 - `BCP_NOTES`: path to the notes file
 - `BCP_MEMO`: older alias for the notes file path
+- `BCP_DATA_DIR`: directory containing bundled-style CSV/YAML data files
 - `BCP_COLLECTS`: path to `collects.yaml`
 - `BCP_CSV`: override the lectionary CSV for a run
 
-Likely future config file:
+## Uninstall
 
-```text
-${XDG_CONFIG_HOME:-$HOME/.config}/bcp-cli/config.yaml
-```
-
-Possible config values:
-
-```yaml
-memo_file: /home/user/notes/bcp.md
-data_dir: /home/user/.local/share/bcp-cli
-bible_translation: kjv
-```
-
-## Design Principles
-
-- text-first
-- local-first
-- keyboard-driven
-- durable Markdown outputs
-- explicit, inspectable data files
-- opinionated workflows over broad configuration
-
-## Current Limitations
-
-- partial lectionary coverage: May and June only
-- Bash/Python hybrid implementation
-- no offline Bible text cache
-- minimal validation of CSV inputs
-- no package-manager installation
-- no config file yet
-
-## Future CLI Shape
-
-The current command surface is intentionally small. Future versions may grow
-toward commands like:
+If installed with `pipx`:
 
 ```sh
-bcp today
-bcp read morning
-bcp read 2026-05-05 evening
-bcp collect sat
+pipx uninstall bcp-cli
 ```
 
-These commands do not exist yet; they are listed here to make the direction
-explicit without misrepresenting the current tool.
+If installed in a virtual environment, remove that environment.
 
-## Roadmap
+Your notes file is stored separately and is not removed by uninstalling.
 
-Near-term:
+## Current Limits
 
-- add remaining monthly CSVs
-- add `BCP_DATA_DIR`
-- add an `install.sh`
-- add validation for all CSV files
-- improve reference parsing and reduce hard-coded chapter-end data
+- May and June lectionary data only
+- Bible text requires internet access
+- KJV is currently the only Bible translation
+- No published package-manager install yet
+- Minimal validation of custom data files
 
-Medium-term:
+## BCP Text And Use
 
-- split the embedded Python into modules
-- package as a Python CLI
-- support `pipx install`
-- cache fetched Bible text for faster repeat/offline use
-- add tests around reference normalization and CSV loading
+This project currently avoids reproducing the New Coverdale Psalter text by
+fetching public-domain KJV Bible text instead. The local data files contain
+lectionary references and short collect, prayer, and devotion texts.
 
-Later:
+This README is not legal advice. Before publishing, distributing broadly,
+charging money, or bundling larger portions of BCP text, the licensing and
+copyright position should be reviewed carefully.
 
-- publish to PyPI
-- add Homebrew formula
-- consider a richer TUI with `prompt_toolkit` or `Textual`
-- support additional Bible text sources
-- support local/offline public-domain Bible text
+## Development
 
-## Contributing
-
-Pull requests are welcome, especially for small, focused improvements.
-
-Good early contributions include:
-
-- normalized monthly lectionary CSVs
-- corrections to existing data files
-- README and installation improvements
-- focused CLI behavior fixes
-- tests and validation
-
-For larger changes, please open an issue first so the direction can be discussed
-before implementation.
-
-Please avoid adding copyrighted source text beyond material that is clearly
-permitted for this project's use. If you contribute lectionary data, preserve
-the existing CSV shape and naming convention.
-
-## License
-
-No license file has been added yet. MIT is a likely fit for the code.
-
-The ACNA 2019 Book of Common Prayer text is not included in full. Users are
-responsible for ensuring appropriate use of source materials.
-
-## Why This Exists
-
-Most tools optimize for doing more.
-
-This tool is designed to help you pay attention to less, more deliberately.
-
-## Development Notes
-
-This repository is intentionally small while the workflow is still being
-discovered. The shell script is a practical wrapper, but most of the real logic
-is already Python. When the feature set stabilizes, the cleanest next step is to
-turn that Python into a proper package and leave the shell script behind.
+Developer notes, project structure, data format details, and possible future
+directions live in [docs/development.md](docs/development.md).
