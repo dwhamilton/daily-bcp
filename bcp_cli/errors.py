@@ -16,6 +16,10 @@ def usage_error(message: str, program: str = "bcp") -> None:
     raise SystemExit(f"{message}\n{usage_text(program)}")
 
 
+def runtime_error(message: str) -> None:
+    raise SystemExit(message)
+
+
 def first_use_text(program: str = "bcp") -> str:
     return (
         "daily-bcp reads Daily Office readings, collects, common prayers, and devotions.\n\n"

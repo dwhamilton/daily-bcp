@@ -3,7 +3,9 @@ from __future__ import annotations
 import unittest
 import csv
 import json
+import ssl
 import tempfile
+import urllib.error
 from contextlib import redirect_stdout
 from datetime import date, datetime
 from io import StringIO
@@ -11,6 +13,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from bcp_cli.cli import run
+from bcp_cli.bible_api import fetch_passage
 from bcp_cli.config import default_data_dir, parse_options
 from bcp_cli.data import find_readings, load_collects
 from bcp_cli.history import format_history, load_history, record_reading
@@ -115,6 +118,28 @@ class CliTests(unittest.TestCase):
         self.assertEqual(psalms, ["Psalm 9"])
         self.assertEqual(first, "Deuteronomy 6")
         self.assertEqual(second, "Luke 4:31-44")
+
+    def test_bible_fetch_ssl_error_has_certificate_hint_without_usage(self) -> None:
+        ssl_error = ssl.SSLCertVerificationError("unable to get local issuer certificate")
+
+        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError(ssl_error)):
+            with self.assertRaises(SystemExit) as raised:
+                fetch_passage("Psalm 9")
+
+        message = str(raised.exception)
+        self.assertIn("Could not fetch KJV text for 'Psalm 9'", message)
+        self.assertIn("HTTPS certificate verification failed", message)
+        self.assertIn("Install Certificates.command", message)
+        self.assertNotIn("Usage: bcp readings", message)
+
+    def test_bible_fetch_network_error_does_not_print_usage(self) -> None:
+        with patch("urllib.request.urlopen", side_effect=urllib.error.URLError("timed out")):
+            with self.assertRaises(SystemExit) as raised:
+                fetch_passage("Psalm 9")
+
+        message = str(raised.exception)
+        self.assertIn("Could not fetch KJV text for 'Psalm 9'", message)
+        self.assertNotIn("Usage: bcp readings", message)
 
     def test_all_bundled_lesson_references_normalize(self) -> None:
         for path in sorted(default_data_dir().glob("*.csv")):
