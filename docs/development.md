@@ -68,7 +68,7 @@ Bundled CSV and YAML files are included as package data:
 bcp_cli = ["data/*.csv", "data/*.yaml"]
 ```
 
-The intended install path is eventually:
+The intended install path is:
 
 ```sh
 pipx install bcp-cli
@@ -79,6 +79,55 @@ Until the package is published, install from a clone:
 ```sh
 pipx install .
 ```
+
+## Release Checklist
+
+Before publishing a release:
+
+1. Run the test suite:
+
+   ```sh
+   python3 -m unittest discover -s tests -q
+   ```
+
+2. Build the source distribution and wheel:
+
+   ```sh
+   python3 -m build
+   ```
+
+3. Inspect and validate the artifacts:
+
+   ```sh
+   python3 -m twine check dist/*
+   ```
+
+4. Upload to TestPyPI first:
+
+   ```sh
+   python3 -m twine upload --repository testpypi dist/*
+   ```
+
+5. Install from TestPyPI with `pipx`:
+
+   ```sh
+   pipx install --force --index-url https://test.pypi.org/simple/ bcp-cli
+   bcp --help
+   bcp history --month may
+   ```
+
+6. Upload to PyPI:
+
+   ```sh
+   python3 -m twine upload dist/*
+   ```
+
+7. Tag the release in git:
+
+   ```sh
+   git tag v0.1.0
+   git push origin v0.1.0
+   ```
 
 ## Data Files
 

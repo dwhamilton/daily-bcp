@@ -34,8 +34,13 @@ The CLI has no Python package dependencies.
 
 ## Install
 
-There is not yet a published PyPI or Homebrew package. For now, install from a
-clone.
+Install with `pipx`:
+
+```sh
+pipx install bcp-cli
+```
+
+Until the first PyPI release is published, install from a clone:
 
 ```sh
 git clone https://github.com/dwhamilton/bcp-cli.git
@@ -252,7 +257,6 @@ Your notes file is stored separately and is not removed by uninstalling.
 - May and June lectionary data only
 - Bible text requires internet access
 - KJV is currently the only Bible translation
-- No published package-manager install yet
 - Minimal validation of custom data files
 
 ## BCP Text And Use

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,7 +8,39 @@ version = "0.1.0"
 description = "Terminal-first Daily Office reader."
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "David W Hamilton" },
+]
+keywords = [
+  "acna",
+  "book of common prayer",
+  "cli",
+  "daily office",
+  "lectionary",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Religion",
+  "Topic :: Utilities",
+]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/dwhamilton/bcp-cli"
+Repository = "https://github.com/dwhamilton/bcp-cli"
+Issues = "https://github.com/dwhamilton/bcp-cli/issues"
 
 [project.scripts]
 bcp = "bcp_cli.cli:main"
