@@ -181,8 +181,8 @@ bcp devotion all
 Store personal readings as YAML files in a `library/` folder beside your notes
 file, or set `BCP_LIBRARY_DIR` to another folder.
 
-On first use, `daily-bcp` creates the folder if needed and adds a sample
-`augustine-confessions.yaml` file when that filename does not already exist.
+On first use, `daily-bcp` creates the folder if needed and adds a bundled
+`sample.yaml` file when that filename does not already exist.
 
 List library items:
 
@@ -201,7 +201,7 @@ Read one item:
 ```sh
 bcp library item1
 bcp library item1 --vim
-bcp library augustine-confessions
+bcp library sample
 ```
 
 The filename stem is the command key, so `item1.yaml` is read with

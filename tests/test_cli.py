@@ -256,11 +256,11 @@ readings:
         self.assertIn("broken.yaml:1: malformed YAML line.", broken.error)
 
     def test_bundled_library_sample_loads(self) -> None:
-        item = load_library_item(bundled_library_dir() / "augustine-confessions.yaml")
+        item = load_library_item(bundled_library_dir() / "sample.yaml")
 
-        self.assertEqual(item.key, "augustine-confessions")
-        self.assertEqual(item.title, "St. Augustine, Confessions")
-        self.assertEqual(item.readings[0].title, "Restless Heart")
+        self.assertEqual(item.key, "sample")
+        self.assertEqual(item.title, "Sample Devotional Readings")
+        self.assertEqual(item.readings[0].title, "Augustine, Confessions, Book I.1")
 
     def test_list_library_items_seeds_bundled_sample(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -268,18 +268,16 @@ readings:
 
             items = list_library_items(library_dir)
 
-            sample_path = library_dir / "augustine-confessions.yaml"
+            sample_path = library_dir / "sample.yaml"
             seeded = sample_path.read_text(encoding="utf-8")
 
-        self.assertTrue(
-            any(item.key == "augustine-confessions" and item.title == "St. Augustine, Confessions" for item in items)
-        )
-        self.assertIn("Restless Heart", seeded)
+        self.assertTrue(any(item.key == "sample" and item.title == "Sample Devotional Readings" for item in items))
+        self.assertIn("Augustine, Confessions, Book I.1", seeded)
 
     def test_seed_library_samples_does_not_overwrite_existing_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             library_dir = Path(directory)
-            sample_path = library_dir / "augustine-confessions.yaml"
+            sample_path = library_dir / "sample.yaml"
             sample_path.write_text("title: Custom\n", encoding="utf-8")
 
             seed_library_samples(library_dir)
@@ -441,7 +439,7 @@ readings:
 
         rendered = output.getvalue()
         self.assertIn(f"Library: {directory}\n\n", rendered)
-        self.assertIn("augustine-confessions: St. Augustine, Confessions\n", rendered)
+        self.assertIn("sample: Sample Devotional Readings\n", rendered)
         self.assertIn("item1: Item Title\n", rendered)
 
     def test_library_list_run_prints_invalid_file_errors(self) -> None:
