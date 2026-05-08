@@ -183,7 +183,7 @@ def format_history(
         year, month_number = current_day.year, current_day.month
 
     if not days:
-        return "No history yet. Run bcp readings to start tracking."
+        return "No history yet. Run bcp daily to start tracking."
 
     lines = [
         f"{calendar.month_name[month_number]} {year}",

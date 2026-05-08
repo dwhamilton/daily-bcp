@@ -40,7 +40,7 @@ def vim_pager(
     prepare_notes: Callable[[], None] | None = None,
 ) -> None:
     if not sys.stdout.isatty():
-        usage_error("--vim requires an interactive terminal.")
+        usage_error("--pages requires an interactive terminal.")
 
     import curses
 
@@ -49,7 +49,7 @@ def vim_pager(
         tty = open("/dev/tty", "rb", buffering=0)
         os.dup2(tty.fileno(), sys.stdin.fileno())
     except OSError:
-        usage_error("--vim could not read keyboard input from /dev/tty.")
+        usage_error("--pages could not read keyboard input from /dev/tty.")
 
     def draw_help(stdscr) -> None:
         stdscr.erase()

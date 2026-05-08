@@ -189,7 +189,7 @@ def normalize_weekday(value: str, date: datetime) -> str:
 
 def print_daily_collect(date: datetime, options: Options) -> None:
     collects = load_collects(options.collects_path)
-    if options.collect_day == "all":
+    if options.collect_day in {"", "all"}:
         daily = collects.get("daily", {})
         order = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
         pages = []
@@ -214,5 +214,4 @@ def print_daily_collect(date: datetime, options: Options) -> None:
     title = daily_collect.get("title", "")
     weekday_title = weekday.title()
     heading = f"{title} - {weekday_title}" if title else weekday_title
-    print(format_collect(heading, daily_collect.get("text", "")))
-
+    show_pages([(weekday_title, format_collect(heading, daily_collect.get("text", "")))], options)

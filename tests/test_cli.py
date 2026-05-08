@@ -35,8 +35,30 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(options.date_arg, "2026-05-05")
         self.assertEqual(options.office, "morning")
-        self.assertEqual(options.mode, "readings")
+        self.assertEqual(options.mode, "daily")
         self.assertEqual(options.csv_path.name, "may_morning.csv")
+
+    def test_parse_daily_commands_and_office_aliases(self) -> None:
+        cases = [
+            (["daily"], "daily", "morning"),
+            (["daily", "am"], "daily", "morning"),
+            (["daily", "pm"], "daily", "evening"),
+            (["psalm", "morning"], "psalm", "morning"),
+            (["first-lesson", "evening"], "first_lesson", "evening"),
+            (["second-lesson", "pm"], "second_lesson", "evening"),
+            (["collect", "am"], "office_collect", "morning"),
+            (["collect", "pm"], "office_collect", "evening"),
+        ]
+        for args, mode, office in cases:
+            with self.subTest(args=args):
+                options = parse_options(args, now=datetime(2026, 5, 5, 9, 0))
+                self.assertEqual(options.mode, mode)
+                self.assertEqual(options.office, office)
+
+    def test_pages_is_preferred_vim_alias(self) -> None:
+        options = parse_options(["daily", "--pages"])
+
+        self.assertTrue(options.vim_mode)
 
     def test_wrap_body_lines_wraps_long_reader_paragraphs(self) -> None:
         wrapped = wrap_body_lines("Alpha beta gamma delta\n\nEpsilon", 12)
@@ -63,7 +85,7 @@ class CliTests(unittest.TestCase):
     def test_parse_collects_command(self) -> None:
         options = parse_options(["--vim", "collects", "sat"])
 
-        self.assertEqual(options.mode, "collect")
+        self.assertEqual(options.mode, "collects")
         self.assertEqual(options.collect_day, "sat")
         self.assertTrue(options.vim_mode)
 
@@ -117,7 +139,8 @@ class CliTests(unittest.TestCase):
                 parse_options([])
 
         self.assertEqual(raised.exception.code, 0)
-        self.assertIn("bcp readings", output.getvalue())
+        self.assertIn("bcp daily", output.getvalue())
+        self.assertIn("bcp psalm pm", output.getvalue())
         self.assertIn("bcp history --verbose", output.getvalue())
 
     def test_positional_date_is_rejected(self) -> None:
@@ -422,6 +445,82 @@ readings:
         self.assertEqual(record.call_args.args[0], "morning")
         self.assertEqual(record.call_args.args[1], date(2026, 5, 5))
 
+    def test_reading_part_commands_render_only_requested_content(self) -> None:
+        commands = [
+            (parse_options(["psalm", "am", "--date", "2026-05-05"]), ["Psalm: Psalm 9"], ["First Lesson", "Second Lesson"]),
+            (
+                parse_options(["first-lesson", "am", "--date", "2026-05-05"]),
+                ["First Lesson: Deuteronomy 6"],
+                ["Psalm:", "Second Lesson"],
+            ),
+            (
+                parse_options(["second-lesson", "am", "--date", "2026-05-05"]),
+                ["Second Lesson: Luke 4"],
+                ["Psalm:", "First Lesson"],
+            ),
+        ]
+
+        for options, included, excluded in commands:
+            with self.subTest(mode=options.mode):
+                with patch("bcp_cli.cli.find_readings", return_value=("", ["Psalm 9"], "Deuteronomy 6", "Luke 4")):
+                    with patch("bcp_cli.cli.load_collects", return_value={}):
+                        with patch("bcp_cli.cli.format_passage", side_effect=lambda title, ref, compact: f"{title}: {ref}"):
+                            with patch("bcp_cli.cli.record_reading") as record:
+                                output = StringIO()
+                                with redirect_stdout(output):
+                                    run(options)
+
+                for text in included:
+                    self.assertIn(text, output.getvalue())
+                for text in excluded:
+                    self.assertNotIn(text, output.getvalue())
+                record.assert_called_once()
+
+    def test_collect_am_uses_morning_office_collect(self) -> None:
+        options = parse_options(["collect", "am", "--date", "2026-05-06"])
+        collects = {
+            "office": {"morning": {"title": "Morning", "text": "Morning text."}},
+            "daily": {"wednesday": {"title": "Wednesday", "text": "Evening text."}},
+        }
+
+        with patch("bcp_cli.cli.load_collects", return_value=collects):
+            with patch("bcp_cli.cli.record_usage"):
+                output = StringIO()
+                with redirect_stdout(output):
+                    run(options)
+
+        self.assertIn("Morning", output.getvalue())
+        self.assertIn("Morning text.", output.getvalue())
+        self.assertNotIn("Evening text.", output.getvalue())
+
+    def test_collect_pm_uses_weekday_evening_collect(self) -> None:
+        options = parse_options(["collect", "pm", "--date", "2026-05-06"])
+        collects = {
+            "office": {"morning": {"title": "Morning", "text": "Morning text."}},
+            "daily": {"wednesday": {"title": "Wednesday", "text": "Evening text."}},
+        }
+
+        with patch("bcp_cli.cli.load_collects", return_value=collects):
+            with patch("bcp_cli.cli.record_usage"):
+                output = StringIO()
+                with redirect_stdout(output):
+                    run(options)
+
+        self.assertIn("Wednesday", output.getvalue())
+        self.assertIn("Evening text.", output.getvalue())
+        self.assertNotIn("Morning text.", output.getvalue())
+
+    def test_collects_without_day_prints_all_daily_collects(self) -> None:
+        options = parse_options(["collects"])
+
+        with patch("bcp_cli.cli.record_usage"):
+            output = StringIO()
+            with redirect_stdout(output):
+                run(options)
+
+        self.assertIn("A Collect for Resurrection Hope - Sunday", output.getvalue())
+        self.assertIn("A Collect for the Eve of Worship - Saturday", output.getvalue())
+
     def test_successful_content_commands_record_usage(self) -> None:
         commands = [
             (parse_options(["collects"]), "collects"),
@@ -632,7 +731,7 @@ readings:
         with tempfile.TemporaryDirectory() as directory:
             output = format_history(path=Path(directory) / "history.json")
 
-        self.assertEqual(output, "No history yet. Run bcp readings to start tracking.")
+        self.assertEqual(output, "No history yet. Run bcp daily to start tracking.")
 
     def test_format_history_current_month(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -19,7 +19,7 @@ keep reflections in plain files you control.
 - Lists and reads user-managed library YAML files with `bcp library`
 - Opens a persistent Markdown notes file with `bcp notes`
 - Shows local readings consistency history with `bcp history`
-- Provides an optional vim-style reader with `--vim`
+- Provides an optional paged reader with `--pages`
 - Supports compact lesson formatting with `--compact`
 
 Current lectionary coverage is May and June only.
@@ -36,7 +36,7 @@ After cloning the repo, play it locally with:
 asciinema play quick-demo.cast
 ```
 
-It shows the first-use prompt, the vim-style Morning Prayer reader, library
+It shows the first-use prompt, the paged Morning Prayer reader, library
 readings, and local history.
 
 ## Requirements
@@ -82,7 +82,7 @@ Verify:
 
 ```sh
 bcp collects sat
-bcp readings morning --date 2026-05-05
+bcp daily am --date 2026-05-05
 bcp library
 ```
 
@@ -127,31 +127,39 @@ Read the current office. Before noon this defaults to Morning Prayer; at noon
 or later this defaults to Evening Prayer:
 
 ```sh
-bcp readings
+bcp daily
 ```
 
 Read today's Morning or Evening Prayer explicitly:
 
 ```sh
-bcp readings morning
-bcp readings evening
+bcp daily am
+bcp daily pm
 ```
 
 Read a specific date:
 
 ```sh
-bcp readings --date 2026-05-05
-bcp readings morning --date yesterday
-bcp readings evening --date tomorrow
+bcp daily --date 2026-05-05
+bcp daily am --date yesterday
+bcp daily pm --date tomorrow
 ```
 
 Render lessons as wrapped paragraphs with inline verse markers:
 
 ```sh
-bcp readings morning --date 2026-05-05 --compact
+bcp daily am --date 2026-05-05 --compact
 ```
 
 Psalms remain verse-broken in compact mode.
+
+Print only one part of the office:
+
+```sh
+bcp psalm pm
+bcp first-lesson am
+bcp second-lesson pm
+```
 
 ## History
 
@@ -175,7 +183,7 @@ Show the tracked details for each day:
 bcp history --verbose
 ```
 
-Successful readable-content commands are tracked: readings, collects, common
+Successful readable-content commands are tracked: daily readings, collects, common
 prayers, devotions, and specific library items. Utility commands such as
 `notes`, `history`, `library`, and `library --path` are not tracked. The history
 date is the local day you ran the command, not the lectionary date requested
@@ -183,7 +191,16 @@ with `--date`.
 
 ## Collects, Prayers, And Devotions
 
-Read the weekday collect:
+Read the office collect. Morning uses the single morning collect; evening uses
+the collect for the weekday:
+
+```sh
+bcp collect
+bcp collect am
+bcp collect pm
+```
+
+List or read the weekday evening collects:
 
 ```sh
 bcp collects
@@ -247,7 +264,7 @@ Read one item:
 
 ```sh
 bcp library item1
-bcp library item1 --vim
+bcp library item1 --pages
 bcp library sample
 ```
 
@@ -268,20 +285,26 @@ readings:
       Another reading here.
 ```
 
-## Vim-Style Reader
+## Paged Reader
 
-Add `--vim` to read in a cleared, keyboard-driven terminal view:
+Add `--pages` to read in a cleared, keyboard-driven terminal view:
 
 ```sh
-bcp readings --vim
-bcp readings morning --vim
-bcp readings evening --date 2026-05-05 --vim
-bcp readings morning --date 2026-05-05 --compact --vim
-bcp collects all --vim
-bcp common all --vim
-bcp devotion all --vim
-bcp library item1 --vim
+bcp daily --pages
+bcp daily am --pages
+bcp daily pm --date 2026-05-05 --pages
+bcp daily am --date 2026-05-05 --compact --pages
+bcp psalm pm --pages
+bcp first-lesson am --pages
+bcp collect pm --pages
+bcp collects all --pages
+bcp common all --pages
+bcp devotion all --pages
+bcp library item1 --pages
 ```
+
+Compatibility aliases remain available: `readings` for `daily`, `--vim` for
+`--pages`, `morning` for `am`, and `evening` for `pm`.
 
 Controls:
 
@@ -301,7 +324,7 @@ Open the notes file:
 bcp notes
 ```
 
-In `--vim` mode, press `m` to open the same notes file. When reading an office,
+In `--pages` mode, press `m` to open the same notes file. When reading an office,
 `daily-bcp` creates one dated section for that date and office, and pressing `m`
 again does not duplicate it.
 
